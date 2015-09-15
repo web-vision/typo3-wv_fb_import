@@ -19,6 +19,7 @@ use TYPO3\CMS\Backend\Utility\BackendUtility;
 use stdClass;
 
 /**
+ * Importer for Facebook (Open Graph) information.
  *
  * @author Daniel Siepmann <d.siepmann@web-vision.de>
  */
@@ -29,6 +30,11 @@ class ImportCommandController extends CommandController
      */
     protected $pageId = '';
 
+    /**
+     * Defines the database table name to use for insertions of news records.
+     *
+     * @return string
+     */
     protected function getNewsTableName()
     {
         return 'tx_news_domain_model_news';
