@@ -15,6 +15,7 @@ namespace WebVision\WvOgImport\Controller;
  */
 
 use TYPO3\CMS\Extbase\Mvc\Controller\CommandController;
+use TYPO3\CMS\Backend\Utility\BackendUtility;
 use stdClass;
 
 /**
@@ -27,6 +28,11 @@ class ImportCommandController extends CommandController
      * @var string The id of the page as string or integer.
      */
     protected $pageId = '';
+
+    protected function getNewsTableName()
+    {
+        return 'tx_news_domain_model_news';
+    }
 
     /**
      * Will import feed for configured page from facebook.
@@ -58,21 +64,39 @@ class ImportCommandController extends CommandController
     {
         $urlToFetch = 'https://graph.facebook.com/' . $this->pageId .
             '/posts?access_token=' . $accessToken;
-        $this->outputLine('Fetch via: "' . $urlToFetch . '"');
-        $posts = json_decode(\TYPO3\CMS\Core\Utility\GeneralUtility::getUrl($urlToFetch));
+        $fbResponse = json_decode(\TYPO3\CMS\Core\Utility\GeneralUtility::getUrl($urlToFetch));
+        $fbPosts = $fbResponse->data;
 
-        // WVTODO: Only fetch posts we didn't import before.
-        // So e.g. fetch posts from DB and diff them.
+        $existingPosts = $GLOBALS['TYPO3_DB']->exec_SELECTgetRows(
+            'title',
+            $this->getNewsTableName(),
+            '1=1' .
+            BackendUtility::BEenableFields($this->getNewsTableName()) .
+            BackendUtility::deleteClause($this->getNewsTableName())
+        );
 
-        return $posts->data;
+        foreach($fbPosts as $key => $fbPost) {
+            if(array_search(array('title' => $this->formatTitle($fbPost)), $existingPosts) !== false) {
+                unset($fbPosts[$key]);
+            }
+        }
+
+        return $fbPosts;
     }
 
+    /**
+     * Add the given posts to the persistence.
+     *
+     * @param array $posts
+     *
+     * @return ImportCommandController
+     */
     protected function addPosts(array $posts)
     {
         // Links first, as we reference them in news entries.
         $recordsToInsert = array(
             'tx_news_domain_model_link' => array(),
-            'tx_news_domain_model_news' => array(),
+            $this->getNewsTableName() => array(),
         );
         $tce = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance('TYPO3\\CMS\\Core\\DataHandling\\DataHandler');
 
@@ -84,13 +108,13 @@ class ImportCommandController extends CommandController
                 'pid' => 18000026,
                 'uri' => $this->getPostUrl($post),
             );
-            $recordsToInsert['tx_news_domain_model_news'][$newsRecordId] = array(
+            $recordsToInsert[$this->getNewsTableName()][$newsRecordId] = array(
                 'pid' => 18000026,
 
                 'related_links' => $linkRecordId,
                 'categories' => 9,
 
-                'author' => 'Provinzial Rheinland',
+                'author_email' => 'Provinzial Rheinland',
 
                 'datetime' => $this->formatDateTime($post),
                 'title' => $this->formatTitle($post),
@@ -103,25 +127,52 @@ class ImportCommandController extends CommandController
             array()
         );
         $tce->process_datamap();
+
+        return $this;
     }
 
+    /**
+     * Get date_time from post.
+     *
+     * @param stdClass $post
+     *
+     * @return string
+     */
     protected function formatDateTime(stdClass $post)
     {
         $dateTime = new \DateTime($post->created_time);
         return $dateTime->format('U');
     }
 
+    /**
+     * Get title from post.
+     *
+     * @param stdClass $post
+     *
+     * @return string
+     */
     protected function formatTitle(stdClass $post)
     {
-        $title = substr($post->message, 0, 80);
+        $encodingBefore = mb_internal_encoding();
+        mb_internal_encoding('UTF-8');
+        $title = mb_substr($post->message, 0, 80);
 
-        if(strlen($post->message) > 80) {
+        if(mb_strlen($post->message) > 80) {
             $title .= ' ...';
         }
+
+        mb_internal_encoding($encodingBefore);
 
         return $title;
     }
 
+    /**
+     * Get deeplink url to the post.
+     *
+     * @param stdClass $post
+     *
+     * @return string
+     */
     protected function getPostUrl(stdClass $post)
     {
         $postId = substr(
