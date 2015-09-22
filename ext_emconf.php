@@ -14,11 +14,11 @@
  */
 
 $EM_CONF[$_EXTKEY] = array(
-    'title' => 'Open Graph Import',
-    'description' => 'Enables import of Facebook Open Graph information.',
+    'title' => 'Facebook Import',
+    'description' => 'Enables import of Facebook information.',
     'category' => 'backend',
-    'version' => '0.0.1',
-    'state' => 'alpha',
+    'version' => '1.0.0',
+    'state' => 'beta',
     'clearcacheonload' => false,
     'author' => 'Daniel Siepmann',
     'author_email' => 'd.siepmann@web-vision.de',
