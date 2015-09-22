@@ -1,5 +1,5 @@
 <?php
-namespace WebVision\WvOgImport\Controller;
+namespace WebVision\WvFbImport\Controller;
 
 /*
  * This file is part of the TYPO3 CMS project.
@@ -23,8 +23,16 @@ use stdClass;
  *
  * @author Daniel Siepmann <d.siepmann@web-vision.de>
  */
-class ImportCommandController extends CommandController
+class FbImportCommandController extends CommandController
 {
+    /**
+     * For UTF-8 string operations.
+     *
+     * @var \TYPO3\CMS\Core\Charset\CharsetConverter
+     * @inject
+     */
+    protected $charsetConverter;
+
     /**
      * @var string The id of the page as string or integer.
      */
@@ -41,19 +49,25 @@ class ImportCommandController extends CommandController
     }
 
     /**
-     * Will import feed for configured page from facebook.
-     *
-     * E.g. import them as tx_news entries.
+     * Will import posts from feed for configured page from facebook as news entries.
      *
      * @param string $pageId The id of the page or the string of the page from url.
      * @param string $accessToken The access token used to query facebook graph API.
+     * @param string $pid The UID if the page where the imported records should be.
+     * @param string $categories Commaseparated list, with no spaces, of UIDs for categories which should be assigned.
+     * @param string $author The author which should be applied to the records.
      *
      * @return void
      */
-    public function importPageFeedCommand($pageId, $accessToken)
+    public function postsAsNewsCommand($pageId, $accessToken, $pid, $categories = '', $author = '')
     {
         $this->pageId = (string) $pageId;
         $posts = $this->fetchPosts($accessToken);
+        foreach($posts as $post) {
+            $post->author = $author;
+            $post->pid = $pid;
+            $post->categories = $categories;
+        }
         $this->addPosts($posts);
     }
 
@@ -104,23 +118,23 @@ class ImportCommandController extends CommandController
             'tx_news_domain_model_link' => array(),
             $this->getNewsTableName() => array(),
         );
-        $tce = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance('TYPO3\\CMS\\Core\\DataHandling\\DataHandler');
+        $tce = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance('TYPO3\CMS\Core\DataHandling\DataHandler');
 
         foreach($posts as $post) {
             $newsRecordId = 'NEW_' . $post->id;
             $linkRecordId = $newsRecordId . '-link';
 
             $recordsToInsert['tx_news_domain_model_link'][$linkRecordId] = array(
-                'pid' => 18000026,
+                'pid' => $post->pid,
                 'uri' => $this->getPostUrl($post),
             );
             $recordsToInsert[$this->getNewsTableName()][$newsRecordId] = array(
-                'pid' => 18000026,
+                'pid' => $post->pid,
 
                 'related_links' => $linkRecordId,
-                'categories' => 9,
+                'categories' => $post->categories,
 
-                'author_email' => 'Provinzial Rheinland',
+                'author_email' => $post->author,
 
                 'datetime' => $this->formatDateTime($post),
                 'title' => $this->formatTitle($post),
@@ -159,15 +173,11 @@ class ImportCommandController extends CommandController
      */
     protected function formatTitle(stdClass $post)
     {
-        $encodingBefore = mb_internal_encoding();
-        mb_internal_encoding('UTF-8');
-        $title = mb_substr($post->message, 0, 80);
+        $title = $this->charsetConverter->utf8_substr($post->message, 0, 80);
 
-        if(mb_strlen($post->message) > 80) {
+        if($this->charsetConverter->utf8_strlen($post->message) > 80) {
             $title .= ' ...';
         }
-
-        mb_internal_encoding($encodingBefore);
 
         return $title;
     }
