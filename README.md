@@ -17,6 +17,9 @@ EXT:News.
 
 Just install the extension as usual via extension manager or CLI.
 
+In case you downloaded it from Github, or used ```git clone``` please name the
+extension ```wv_fb_import```.
+
 ### Import of posts
 
 First you need an facebook APP.
