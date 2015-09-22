@@ -26,6 +26,14 @@ use stdClass;
 class ImportCommandController extends CommandController
 {
     /**
+     * For UTF-8 string operations.
+     *
+     * @var \TYPO3\CMS\Core\Charset\CharsetConverter
+     * @inject
+     */
+    protected $charsetConverter;
+
+    /**
      * @var string The id of the page as string or integer.
      */
     protected $pageId = '';
@@ -159,15 +167,11 @@ class ImportCommandController extends CommandController
      */
     protected function formatTitle(stdClass $post)
     {
-        $encodingBefore = mb_internal_encoding();
-        mb_internal_encoding('UTF-8');
-        $title = mb_substr($post->message, 0, 80);
+        $title = $this->charsetConverter->utf8_substr($post->message, 0, 80);
 
-        if(mb_strlen($post->message) > 80) {
+        if($this->charsetConverter->utf8_strlen($post->message) > 80) {
             $title .= ' ...';
         }
-
-        mb_internal_encoding($encodingBefore);
 
         return $title;
     }
