@@ -13,4 +13,6 @@
  * The TYPO3 project - inspiring people to share!
  */
 
+// @codingStandardsIgnoreStart
 $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['extbase']['commandControllers'][$_EXTKEY] = 'WebVision\WvFbImport\Controller\FbImportCommandController';
+// @codingStandardsIgnoreEnd
