@@ -28,7 +28,7 @@ class FbImportCommandController extends CommandController
     /**
      * For UTF-8 string operations.
      *
-     * @var \TYPO3\CMS\Core\Charset\CharsetConverter
+     * @var    \TYPO3\CMS\Core\Charset\CharsetConverter
      * @inject
      */
     protected $charsetConverter;
@@ -51,11 +51,11 @@ class FbImportCommandController extends CommandController
     /**
      * Will import posts from feed for configured page from facebook as news entries.
      *
-     * @param string $pageId The id of the page or the string of the page from url.
+     * @param string $pageId      The id of the page or the string of the page from url.
      * @param string $accessToken The access token used to query facebook graph API.
-     * @param string $pid The UID if the page where the imported records should be.
-     * @param string $categories Commaseparated list, with no spaces, of UIDs for categories which should be assigned.
-     * @param string $author The author which should be applied to the records.
+     * @param string $pid         The UID if the page where the imported records should be.
+     * @param string $categories  Commaseparated list, with no spaces, of UIDs for categories which should be assigned.
+     * @param string $author      The author which should be applied to the records.
      *
      * @return void
      */
