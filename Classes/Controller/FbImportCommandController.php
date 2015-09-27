@@ -16,7 +16,6 @@ namespace WebVision\WvFbImport\Controller;
 
 use TYPO3\CMS\Extbase\Mvc\Controller\CommandController;
 use TYPO3\CMS\Backend\Utility\BackendUtility;
-use stdClass;
 
 /**
  * Importer for Facebook (Open Graph) information.
