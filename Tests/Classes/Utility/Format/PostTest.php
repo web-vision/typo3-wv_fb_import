@@ -23,7 +23,7 @@ class PostTest extends \PHPUnit_Framework_TestCase
     public function setUp()
     {
         require_once dirname(dirname(dirname(dirname(__DIR__)))) . '/Classes/Utility/Format/Post.php';
-        $this->formatClass = new \WebVision\Utility\Format\Post;
+        $this->formatClass = new \WebVision\WvFbImport\Utility\Format\Post;
     }
 
     /**
