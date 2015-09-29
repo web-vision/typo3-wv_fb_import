@@ -16,7 +16,6 @@ namespace WebVision\WvFbImport\Controller;
 
 use TYPO3\CMS\Extbase\Mvc\Controller\CommandController;
 use TYPO3\CMS\Backend\Utility\BackendUtility;
-use stdClass;
 
 /**
  * Importer for Facebook (Open Graph) information.
@@ -26,12 +25,10 @@ use stdClass;
 class FbImportCommandController extends CommandController
 {
     /**
-     * For UTF-8 string operations.
-     *
-     * @var    \TYPO3\CMS\Core\Charset\CharsetConverter
+     * @var \WebVision\WvFbImport\Utility\Format\Post
      * @inject
      */
-    protected $charsetConverter;
+    protected $postFormat;
 
     /**
      * @var string The id of the page as string or int.
@@ -99,7 +96,7 @@ class FbImportCommandController extends CommandController
         );
 
         foreach($fbPosts as $key => $fbPost) {
-            if(array_search(array('title' => $this->formatTitle($fbPost)), $existingPosts) !== false) {
+            if(array_search(array('title' => $this->postFormat->formatTitle($fbPost)), $existingPosts) !== false) {
                 unset($fbPosts[$key]);
             }
         }
@@ -129,7 +126,7 @@ class FbImportCommandController extends CommandController
 
             $recordsToInsert['tx_news_domain_model_link'][$linkRecordId] = array(
                 'pid' => $post->pid,
-                'uri' => $this->getPostUrl($post),
+                'uri' => $this->postFormat->getPostUrl($post, $this->pageId),
             );
             $recordsToInsert[$this->getNewsTableName()][$newsRecordId] = array(
                 'pid' => $post->pid,
@@ -139,8 +136,8 @@ class FbImportCommandController extends CommandController
 
                 'author_email' => $post->author,
 
-                'datetime' => $this->formatDateTime($post),
-                'title' => $this->formatTitle($post),
+                'datetime' => $this->postFormat->formatDateTime($post),
+                'title' => $this->postFormat->formatTitle($post),
             );
         }
 
@@ -152,52 +149,5 @@ class FbImportCommandController extends CommandController
         $tce->process_datamap();
 
         return $this;
-    }
-
-    /**
-     * Get date_time from post.
-     *
-     * @param stdClass $post
-     *
-     * @return string
-     */
-    protected function formatDateTime(stdClass $post)
-    {
-        $dateTime = new \DateTime($post->created_time);
-        return $dateTime->format('U');
-    }
-
-    /**
-     * Get title from post.
-     *
-     * @param stdClass $post
-     *
-     * @return string
-     */
-    protected function formatTitle(stdClass $post)
-    {
-        $title = $this->charsetConverter->utf8_substr($post->message, 0, 80);
-
-        if($this->charsetConverter->utf8_strlen($post->message) > 80) {
-            $title .= ' ...';
-        }
-
-        return $title;
-    }
-
-    /**
-     * Get deeplink url to the post.
-     *
-     * @param stdClass $post
-     *
-     * @return string
-     */
-    protected function getPostUrl(stdClass $post)
-    {
-        $postId = substr(
-            $post->id,
-            strpos($post->id, '_') + 1
-        );
-        return 'https://www.facebook.com/' . $this->pageId . '/posts/' . $postId;
     }
 }
