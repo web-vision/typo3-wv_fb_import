@@ -26,7 +26,7 @@ class Post
     /**
      * For UTF-8 string operations.
      *
-     * @var    \TYPO3\CMS\Core\Charset\CharsetConverter
+     * @var \TYPO3\CMS\Core\Charset\CharsetConverter
      * @inject
      */
     protected $charsetConverter;

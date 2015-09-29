@@ -15,7 +15,7 @@ namespace WebVision\WvFbImport\Tests\Classes\Utility\Format;
  */
 
 /**
- * @WVNOTE: Test for title is missing as we relay on T3 API and don;t know how
+ * @WVNOTE: Test for title is missing as we relay on T3 API and don't know how
  * to test without a full blown TYPO3 CMS.
  *
  * @author Daniel Siepmann <d.siepmann@web-vision.de>
