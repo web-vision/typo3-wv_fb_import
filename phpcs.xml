@@ -4,5 +4,5 @@
 
     <file>.</file>
 
-    <rule ref="WVTYPO3CMS" />
+    <rule ref="Wvtypo3cms" />
 </ruleset>
